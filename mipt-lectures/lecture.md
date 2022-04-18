@@ -589,6 +589,160 @@ int main() {
 ```
 
 
+# Лекция 13. vtables, шаблоны
+
+## 5.8. Virtual functions with virtual inheritance
+
+```
+      Granny
+     /       \
+    / virtual \  
+ Mother       Father
+    \         /
+     \ usual /  
+        Son
+```
+
+```c++
+struct Granny {
+    virtual void foo();
+    int g;
+}
+
+struct Mother : public virtual Granny {
+    int m;
+}
+
+struct Father : public virtual Granny {
+    int f;
+}
+
+struct Son : public Father, public Mother 
+{
+    int s;
+}
+```
+
+В памяти это будет лежать так: [vptr][m] [vptr][f] [s] [vptr][g]
+
+И 3 виртуальные таблицы (для папы и мамы): [virt_base_offset] [top_offset] [typeinfo] [&foo]
+
+virt_base_offset - смещение вправо, чтобы дойти до виртуальных предков. Т.е. до бабушки. Все виртуальные предки лежат подряд в конце. 
+
+top_offset - смещение относительно начала области памяти лежит объект. Т.е. для мамы это будет 0 (возможно) и она понимает, что лежит первой. Для папы где он лежит относительно начал
+
+typeinfo - указатель на информацию о типе
+
+
+## 6. Templates
+## 6.1. Idea of template
+
+Может быть много разных функций, которые делают разные вещи для разных типов.
+
+```c++
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
+double max(double a, double b) {
+     // сравнение с какой-то точностью
+}
+```
+
+И тогда можем:
+```c++
+template<typename T>
+T mymax(T a, T b) {
+    return a > b ? a : b;
+}
+```
+
+Когда мы сделаем реальный вызов функции max компилятор сгенерирует для этого типа код функции. 
+
+```c++
+int main() {
+    mymax(1, 2); // Тут комплиятор сгенерирует функцию с типом int
+    mymax(std::cout, std::cout); // CE, т.к. он сгенерирует функцию для типа std::ostream& увидит, что их не получается сравнивать
+}
+```
+
+При этом адреса функций будут разные, т.к. max<int>  и max<double> разные функции:
+```c++
+template<typename T>
+T mymax(T a, T b) {
+    return a > b ? a : b;
+}
+
+int main() {
+    int (*pfi)(int, int) = &mymax<int>;
+    double (*pfd)(double, double) = &mymax<double>;
+    std:cout << (int*)pfi << "\n" << (int*)pfd << '\n';
+}
+/// Выведет 2 разных адреса
+```
+
+Что можно делать шаблонным?
+```c++
+/// Функции
+template<typename T>
+T foo(T a, T b) {}
+
+/// Классы, структуры
+template<typename T>
+struct S {}
+
+/// Методы внутри структур
+class C {
+    template<typename T>
+    void f();
+}
+
+template<typename T>
+void C::f() {}
+
+/// Alias since c++11
+template<typename T>
+using my_tree = tree<T, null_type, less<T>, rb_tree_tag>;
+
+// Переменные since c++14
+template<typename T>
+T pi = 3.14;
+```
+
+## 6.2. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
