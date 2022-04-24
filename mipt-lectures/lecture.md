@@ -574,7 +574,7 @@ int main() {
 Поэтому есть ключевое слово explicit.
 ```c++
 class UserId {
-    int x;
+    int id;
 public:
     explicit UserId(int id) : id(id) { }
     explicit operator int() { return id; }
@@ -763,7 +763,6 @@ int main() {
 ```c++
 
 ```
-
 
 
 
