@@ -9,12 +9,8 @@ class big_integer
 {
 public:
     big_integer() = default;
-    big_integer(int num);
+    big_integer(uint64_t num);
     explicit big_integer(const std::string& str);
-
-    big_integer(const big_integer& other);
-    big_integer& operator=(const big_integer& other);
-
 
     big_integer& operator+=(const big_integer& rhs);
     big_integer& operator-=(const big_integer& rhs);
@@ -40,7 +36,11 @@ public:
 private:
     const uint64_t base = 10;
 
-    std::vector<int64_t> value;
+    std::vector<int64_t> limbs;
+
+private:
+
+    size_t normalize();
 };
 
 bool operator == (const big_integer& lhs, const big_integer& rhs);

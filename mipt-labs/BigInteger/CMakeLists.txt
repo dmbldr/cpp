@@ -8,7 +8,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 set(SOURCES
-    BigInteger.cpp)
+    Source/BigInteger.cpp)
 
+include_directories(Include)
 
-add_library(BigInteger )
+add_executable(${PROJECT_NAME} ${SOURCES})
+#add_library(BigInteger )
