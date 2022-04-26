@@ -4,26 +4,97 @@
 
 #include <BigInteger.hpp>
 
-big_integer::big_integer(uint64_t num)
+class big_integer::Implement
 {
-    while(num > 0)
+public:
+    Implement() = default;
+
+    size_t normalize()
     {
-        limbs.push_back(num % base);
-        num /= base;
+        while (!limbs.empty() && limbs.back() == 0)
+        {
+            limbs.pop_back();
+        }
+        return limbs.size();
     }
+
+public:
+    /// основание - 2^32
+    const uint32_t base = 0xFFFFFFFF;
+
+    /// В конце вектора находятся старшие лимбы (коэффициенты)
+    std::vector<uint32_t> limbs;
+};
+
+big_integer::big_integer(uint32_t num) : pimpl(std::make_unique<Implement>())
+{
+    pimpl->limbs.push_back(num);
     // TODO: signed
+}
+
+big_integer& big_integer::operator += (const big_integer &rhs)
+{
+    size_t i = 0;
+    uint64_t carry = 0;
+    while(i < this->pimpl->limbs.size() || i < rhs.pimpl->limbs.size())
+    {
+        uint64_t sum = this->limbs[i] + rhs.limbs[i] + carry;
+        carry = sum > base ? 1 : 0;
+        this->limbs[i] = sum % base;
+        ++i;
+    }
+    while(i < rhs.limbs.size()) // случай this.size() < rhs.size()
+    {
+        uint64_t sum = rhs.limbs[i] + carry;
+        carry = sum > base ? 1 : 0;
+        this->limbs.push_back(sum % base);
+        ++i;
+    }
+    while(i < this->limbs.size()) // случай this.size() > rhs.size()
+    {
+        uint64_t sum = this->limbs[i] + carry;
+        carry = sum > base ? 1 : 0;
+        this->limbs[i] = sum % base;
+        ++i;
+    }
+    // TODO: убрать дублирование кода
+    return *this;
+}
+
+big_integer& big_integer::operator -= (const big_integer &rhs)
+{
+    // TODO
+    return *this;
+}
+
+big_integer& big_integer::operator *= (const big_integer &rhs)
+{
+    // TODO
+    return *this;
+}
+
+big_integer& big_integer::operator /= (const big_integer &rhs)
+{
+    // TODO
+    return *this;
+}
+
+big_integer& big_integer::operator %= (const big_integer &rhs)
+{
+    // TODO
+    return *this;
 }
 
 bool operator < (const big_integer &lhs, const big_integer &rhs)
 {
-    if(lhs.limbs.size() != rhs.limbs.size())
+    if(lhs.pimpl->limbs.size() != rhs.pimpl->limbs.size())
     {
-        return lhs.limbs.size() < rhs.limbs.size();
+        return lhs.pimpl->limbs.size() < rhs.pimpl->limbs.size();
     }
-    auto i = lhs.limbs.size();
-    while(--i > 0 && lhs.limbs[i] == rhs.limbs[i])
+    auto i = lhs.pimpl->limbs.size();
+    while(--i > 0 && lhs.pimpl->limbs[i] == rhs.pimpl->limbs[i])
         ;
-    return lhs.limbs[i] < rhs.limbs[i];
+    return lhs.pimpl->limbs[i] < rhs.pimpl->limbs[i];
 }
 
 bool operator > (const big_integer &lhs, const big_integer &rhs)
@@ -51,11 +122,37 @@ bool operator >= (const big_integer& lhs, const big_integer& rhs)
     return !(lhs < rhs);
 }
 
-size_t big_integer::normalize()
+big_integer operator + (const big_integer& lhs, const big_integer& rhs)
 {
-    while (!limbs.empty() && limbs.back() == 0)
-    {
-        limbs.pop_back();
-    }
-    return limbs.size();
+    big_integer copy = lhs;
+    copy += rhs;
+    return copy;
+}
+
+big_integer operator - (const big_integer& lhs, const big_integer& rhs)
+{
+    big_integer copy = lhs;
+    copy -= rhs;
+    return copy;
+}
+
+big_integer operator * (const big_integer& lhs, const big_integer& rhs)
+{
+    big_integer copy = lhs;
+    copy *= rhs;
+    return copy;
+}
+
+big_integer operator / (const big_integer& lhs, const big_integer& rhs)
+{
+    big_integer copy = lhs;
+    copy /= rhs;
+    return copy;
+}
+
+big_integer operator % (const big_integer& lhs, const big_integer& rhs)
+{
+    big_integer copy = lhs;
+    copy %= rhs;
+    return copy;
 }

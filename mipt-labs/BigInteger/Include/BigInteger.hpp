@@ -4,12 +4,13 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <memory>
 
 class big_integer
 {
 public:
     big_integer() = default;
-    big_integer(uint64_t num);
+    big_integer(uint32_t num);
     explicit big_integer(const std::string& str);
 
     big_integer& operator+=(const big_integer& rhs);
@@ -34,13 +35,10 @@ public:
     operator bool();
 
 private:
-    const uint64_t base = 10;
+    class Implement;
 
-    std::vector<int64_t> limbs;
 
-private:
-
-    size_t normalize();
+    std::unique_ptr<Implement> pimpl;
 };
 
 bool operator == (const big_integer& lhs, const big_integer& rhs);
