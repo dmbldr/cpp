@@ -4,13 +4,12 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <memory>
 
 class big_integer
 {
 public:
     big_integer() = default;
-    big_integer(uint32_t num);
+    big_integer(uint64_t num);
     explicit big_integer(const std::string& str);
 
     big_integer& operator+=(const big_integer& rhs);
@@ -35,10 +34,14 @@ public:
     operator bool();
 
 private:
-    class Implement;
+    const uint64_t base = 10;
 
+    /// В конце вектора находятся старшие лимбы (коэффициенты)
+    std::vector<uint64_t> limbs;
 
-    std::unique_ptr<Implement> pimpl;
+private:
+
+    size_t normalize();
 };
 
 bool operator == (const big_integer& lhs, const big_integer& rhs);

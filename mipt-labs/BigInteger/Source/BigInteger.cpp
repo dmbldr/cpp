@@ -4,31 +4,13 @@
 
 #include <BigInteger.hpp>
 
-class big_integer::Implement
+big_integer::big_integer(uint64_t num)
 {
-public:
-    Implement() = default;
-
-    size_t normalize()
+    while(num > 0)
     {
-        while (!limbs.empty() && limbs.back() == 0)
-        {
-            limbs.pop_back();
-        }
-        return limbs.size();
+        limbs.push_back(num % base);
+        num /= base;
     }
-
-public:
-    /// основание - 2^32
-    const uint32_t base = 0xFFFFFFFF;
-
-    /// В конце вектора находятся старшие лимбы (коэффициенты)
-    std::vector<uint32_t> limbs;
-};
-
-big_integer::big_integer(uint32_t num) : pimpl(std::make_unique<Implement>())
-{
-    pimpl->limbs.push_back(num);
     // TODO: signed
 }
 
@@ -36,7 +18,7 @@ big_integer& big_integer::operator += (const big_integer &rhs)
 {
     size_t i = 0;
     uint64_t carry = 0;
-    while(i < this->pimpl->limbs.size() || i < rhs.pimpl->limbs.size())
+    while(i < this->limbs.size() || i < rhs.limbs.size())
     {
         uint64_t sum = this->limbs[i] + rhs.limbs[i] + carry;
         carry = sum > base ? 1 : 0;
@@ -87,14 +69,14 @@ big_integer& big_integer::operator %= (const big_integer &rhs)
 
 bool operator < (const big_integer &lhs, const big_integer &rhs)
 {
-    if(lhs.pimpl->limbs.size() != rhs.pimpl->limbs.size())
+    if(lhs.limbs.size() != rhs.limbs.size())
     {
-        return lhs.pimpl->limbs.size() < rhs.pimpl->limbs.size();
+        return lhs.limbs.size() < rhs.limbs.size();
     }
-    auto i = lhs.pimpl->limbs.size();
-    while(--i > 0 && lhs.pimpl->limbs[i] == rhs.pimpl->limbs[i])
+    auto i = lhs.limbs.size();
+    while(--i > 0 && lhs.limbs[i] == rhs.limbs[i])
         ;
-    return lhs.pimpl->limbs[i] < rhs.pimpl->limbs[i];
+    return lhs.limbs[i] < rhs.limbs[i];
 }
 
 bool operator > (const big_integer &lhs, const big_integer &rhs)
@@ -155,4 +137,13 @@ big_integer operator % (const big_integer& lhs, const big_integer& rhs)
     big_integer copy = lhs;
     copy %= rhs;
     return copy;
+}
+
+size_t big_integer::normalize()
+{
+    while (!limbs.empty() && limbs.back() == 0)
+    {
+        limbs.pop_back();
+    }
+    return limbs.size();
 }
