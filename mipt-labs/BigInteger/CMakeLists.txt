@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.20)
 
 set(PROJECT_NAME biginteger)
 
@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 set(SOURCES
-    Source/BigInteger.cpp)
+    Source/BigInteger.cpp
+    Source/main.cpp)
 
 include_directories(Include)
 
