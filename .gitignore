@@ -1,3 +1,5 @@
 *.idea*
 *build*
-*.vscode*
+*.vscode
+*.vs
+*.swp
