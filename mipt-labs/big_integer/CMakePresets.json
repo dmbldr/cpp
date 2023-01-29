@@ -2,7 +2,7 @@
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 25,
+    "minor": 21,
     "patch": 0
   },
   "configurePresets": [
@@ -10,47 +10,53 @@
       "name": "gcc-debug",
       "displayName": "WSL GCC Debug",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
+      "binaryDir": "${sourceDir}/out/cmake-build-${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "gcc-9",
         "CMAKE_CXX_COMPILER": "g++-9",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wcast-align -Wcast-qual -Wnull-dereference -Woverloaded-virtual -Wformat=2 -Werror"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
-          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
-        }
       }
     },
     {
       "name": "clang-debug",
       "displayName": "WSL Clang Debug",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
+      "binaryDir": "${sourceDir}/out/cmake-build-${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "clang-12",
         "CMAKE_CXX_COMPILER": "clang++-12",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wcast-align -Wcast-qual -Wnull-dereference -Woverloaded-virtual -Wformat=2 -Werror"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
-          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
-        }
       }
+    },
+    {
+      "name": "Release",
+      "displayName": "Release",
+      "description": "Default Release build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "binaryDir": "${sourceDir}/out/cmake-build-${presetName}"
+    },
+    {
+      "name": "SanitizedDebug",
+      "displayName": "SanitizedDebug",
+      "description": "Debug build with undefined, address and leak sanitizers enabled",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "USE_SANITIZERS": "ON"
+      },
+      "binaryDir": "${sourceDir}/out/cmake-build-${presetName}"
+    },
+    {
+      "name": "RelWithDebInfo",
+      "displayName": "RelWithDebInfo",
+      "description": "Release with debug info",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "binaryDir": "${sourceDir}/out/cmake-build-${presetName}"
     }
   ]
 }

@@ -4,26 +4,44 @@ project (big_integer
 	DESCRIPTION "Implementation of Big Integer library"
 	LANGUAGES CXX)
 
-add_library(big_integer)
+add_executable(tests tests.cpp big_integer.cpp)
 
-set(sources
-    include/big_integer.h
-    src/big_integer.cpp)
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
+#----------------------------------------------------------------------------------------------------------------------
+# testing framework
+#----------------------------------------------------------------------------------------------------------------------
 
-target_sources(big_integer PRIVATE ${sources})
+include(FetchContent)
+FetchContent_Declare(
+		googletest
+		GIT_REPOSITORY https://github.com/google/googletest.git
+		GIT_TAG        release-1.12.1
+)
 
-target_include_directories(big_integer
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) # do not override parent project's runtime settings on Windows
+set(INSTALL_GTEST OFF)
+set(BUILD_SHARED_LIBS OFF)
 
-set_target_properties(big_integer PROPERTIES
-    CXX_STANDARD 17
-    PUBLIC include/big_integer.h
-    SOVERSION ${PROJECT_VERSION_MAJOR}
-    VERSION ${PROJECT_VERSION})
+FetchContent_MakeAvailable(googletest)
 
-enable_testing()
-add_subdirectory(tests)
+if (NOT MSVC)
+	target_compile_options(tests PRIVATE -Wall -Wno-sign-compare -pedantic)
+endif()
+
+option(USE_SANITIZERS "Enable to build with undefined,leak and address sanitizers" OFF)
+if (USE_SANITIZERS)
+	target_compile_options(tests PUBLIC -fsanitize=address,undefined,leak -fno-sanitize-recover=all)
+	target_link_options(tests PUBLIC -fsanitize=address,undefined,leak)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	target_compile_options(tests PUBLIC -stdlib=libc++)
+endif()
+
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+	target_compile_options(tests PUBLIC -D_GLIBCXX_DEBUG)
+endif()
+
+target_link_libraries(tests GTest::gtest GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(tests)

@@ -23,16 +23,16 @@ big_integer::big_integer(const std::string& str)
 
     m_sign = str[0] == '-' ? -1 : 1;
 
+    for (int i = str.size(); i >= 0; i -= 9)
+    {
 
-
+    }
 }
 
-void big_integer::normalize()
+std::string to_string(const big_integer& rhs)
 {
-    while (m_nums.size() > 1 && m_nums.back() == 0)
-        m_nums.pop_back();
+    return "";
 }
-
 
 big_integer& big_integer::operator += (const big_integer& rhs)
 {
@@ -70,6 +70,21 @@ big_integer& big_integer::operator -= (const big_integer& rhs)
 	return *this;
 }
 
+big_integer &big_integer::operator*=(const big_integer &rhs)
+{
+    return *this;
+}
+
+big_integer &big_integer::operator/=(const big_integer &rhs)
+{
+    return *this;
+}
+
+big_integer &big_integer::operator%=(const big_integer &rhs)
+{
+    return *this;
+}
+
 big_integer& big_integer::operator-- ()
 {
 	return *this -= 1;
@@ -93,10 +108,16 @@ big_integer big_integer::operator++ (int) &
 	return copy;
 }
 
-big_integer big_integer::operator - ()
+big_integer big_integer::operator - () const
 {
-    m_sign = -m_sign;
-	return *this;
+    big_integer copy = *this;
+    copy.m_sign = -m_sign;
+	return copy;
+}
+
+big_integer big_integer::operator + () const
+{
+    return *this;
 }
 
 big_integer::operator bool() const
@@ -156,7 +177,6 @@ bool operator < (const big_integer& lhs, const big_integer& rhs)
 	return false;
 }
 
-
 bool operator > (const big_integer& lhs, const big_integer& rhs)
 {
 	return rhs < lhs;
@@ -190,6 +210,7 @@ bool operator != (const big_integer& lhs, const big_integer& rhs)
 
 std::ostream& operator << (std::ostream& out, const big_integer& rhs)
 {
-	out << rhs.toString();
+	out << to_string(rhs);
 	return out;
 }
+

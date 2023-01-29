@@ -1,0 +1,9 @@
+    Основное:
+1. from string, to string
+2. addition and subtraction
+3. multiplication and division
+4. istream
+
+    Дополнительное
+1. Умножение Карацубой
+2. FFT ?
