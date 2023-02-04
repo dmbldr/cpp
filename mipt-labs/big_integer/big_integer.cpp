@@ -1,13 +1,17 @@
-﻿// big_integer.cpp : Defines the entry point for the application.
-//
+﻿#include "big_integer.h"
 
-#include "big_integer.h"
+#include <iomanip>
+#include <sstream>
 
-big_integer::big_integer(int value)
+// ============ member functions ============ //
+
+big_integer::big_integer(int64_t value)
 {
-	m_sign = value == 0 ? 0 : (value < 0 ? -1 : 1);
+    if (value == 0) return;
 
-    auto uval = static_cast<uint32_t>(std::abs(value));
+	m_sign = value < 0 ? -1 : 1;
+
+    auto uval = static_cast<uint64_t>(std::llabs(value));
     while (uval > 0)
     {
         m_nums.push_back(uval % BASE);
@@ -15,23 +19,38 @@ big_integer::big_integer(int value)
     }
 }
 
-big_integer::big_integer(const std::string& str)
+// string = "12345'678901234"
+// nums = { 678901234, 12345 }
+
+big_integer::big_integer(const std::string_view& str)
 {
-    // "00" "-0" "+0" etc?
-    if (str.empty() || str == "0")
+    using namespace std::string_literals;
+
+    if (str.empty() || str == "0"s)
         return;
 
-    m_sign = str[0] == '-' ? -1 : 1;
-
-    for (int i = str.size(); i >= 0; i -= 9)
+    m_sign = 1;
+    long long str_start = 0;
+    if (str[0] == '-')
     {
-
+        m_sign = -1;
+        str_start = 1;
     }
-}
 
-std::string to_string(const big_integer& rhs)
-{
-    return "";
+    m_nums.reserve(str.size() / DIGITS + 1);
+    for (auto i = static_cast<long long>(str.size()) - 1; i >= str_start; i -= DIGITS)
+    {
+        if (i - str_start < DIGITS)
+        {
+            m_nums.push_back(std::atoi(str.substr(str_start, i).data()));
+        }
+        else
+        {
+            m_nums.push_back(std::atoi(str.substr(i - DIGITS, DIGITS).data()));
+        }
+    }
+
+    normalize();
 }
 
 big_integer& big_integer::operator += (const big_integer& rhs)
@@ -122,8 +141,22 @@ big_integer big_integer::operator + () const
 
 big_integer::operator bool() const
 {
-	return m_sign != 0;
+	return !m_nums.empty();
 }
+
+// ============ private member functions ============ //
+
+std::size_t big_integer::normalize()
+{
+    while(!m_nums.empty() && m_nums.back() == 0)
+    {
+        m_nums.pop_back();
+    }
+
+    return m_nums.size();
+}
+
+// ============ not member functions ============ //
 
 big_integer operator + (const big_integer& lhs, const big_integer& rhs)
 {
@@ -210,7 +243,29 @@ bool operator != (const big_integer& lhs, const big_integer& rhs)
 
 std::ostream& operator << (std::ostream& out, const big_integer& rhs)
 {
-	out << to_string(rhs);
-	return out;
+	if (rhs.m_sign == 0)
+    {
+        out << 0;
+        return out;
+    }
+
+    if (rhs.m_sign < 0) out << '-';
+
+    out << rhs.m_nums.back();
+
+    auto prev_fill = out.fill('0');
+    for (auto i = static_cast<long long>(rhs.m_nums.size()) - 2; i >= 0; --i)
+    {
+        out << std::setw(big_integer::DIGITS) << rhs.m_nums[i];
+    }
+    out.fill(prev_fill);
+
+    return out;
 }
 
+std::string to_string(const big_integer& rhs)
+{
+    std::stringstream ss;
+    ss << rhs;
+    return ss.str();
+}

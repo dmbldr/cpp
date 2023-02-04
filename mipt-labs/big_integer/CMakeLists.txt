@@ -4,8 +4,9 @@ project (big_integer
 	DESCRIPTION "Implementation of Big Integer library"
 	LANGUAGES CXX)
 
-add_executable(tests tests.cpp big_integer.cpp)
+set(CMAKE_CXX_STANDARD 17)
 
+add_executable(tests tests.cpp big_integer.cpp)
 #----------------------------------------------------------------------------------------------------------------------
 # testing framework
 #----------------------------------------------------------------------------------------------------------------------

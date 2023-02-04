@@ -1,15 +1,16 @@
 ﻿#pragma once
 
 #include <iostream>
-#include <vector>
 #include <string>
+#include <string_view>
+#include <vector>
 
 class big_integer
 {
 public:
 	big_integer() = default;
-	big_integer(int);
-    explicit big_integer(const std::string&);
+	big_integer(int64_t);
+    explicit big_integer(const std::string_view&);
 
 	big_integer& operator += (const big_integer& rhs);
 	big_integer& operator -= (const big_integer& rhs);
@@ -29,23 +30,26 @@ public:
 	friend bool operator < (const big_integer& lhs, const big_integer& rhs);
 
 	friend std::istream& operator >> (std::istream& in, big_integer& rhs);
-	
-	friend std::string to_string();
+    friend std::ostream& operator << (std::ostream& out, const big_integer& rhs);
 
 	explicit operator bool() const;
 
 private:
 
     /// Храним по 9 цифр в одном элементе
-	static constexpr uint32_t BASE = 1'000'000'000UL;
+	static constexpr uint64_t BASE = 1'000'000'000UL;
+    static constexpr int DIGITS = 9;
 
-    //!  0: BigInt == 0;
-    //!  1: BigInt > 0;
-    //! -1: BigInt < 0;
+    ///  0: BigInt == 0;
+    ///  1: BigInt >  0;
+    /// -1: BigInt <  0;
 	int m_sign = 0;
 
     ///
-	std::vector<uint32_t> m_nums;
+	std::vector<uint64_t> m_nums;
+private:
+
+    std::size_t normalize();
 };
 
 

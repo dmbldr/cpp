@@ -3,3 +3,5 @@
 *.vscode
 *.vs
 *.swp
+mipt-lectures/a.out
+mipt-lectures/examples.cpp

@@ -1,16 +1,16 @@
 
-#include <random>
-#include <iostream>
-#include <limits>
-#include <string>
 #include <algorithm>
 #include <cstdlib>
+#include <iostream>
+#include <limits>
+#include <random>
+#include <string>
 
 #include "gtest/gtest.h"
 
 #include "big_integer.h"
 
-TEST(constructors, from_int)
+TEST(correctness, from_int)
 {
     std::vector<int> values = {0, 999'999'999, 1'000'000'000, 1'000'010'090, 2'000'000'000, 2'000'010'090,
                               -1, -999'999'999,  -1'000'000'000, -1'000'010'090, -2'000'000'000, -2'000'010'090
@@ -479,7 +479,7 @@ TEST(correctness, string_conv) {
     EXPECT_EQ("-2147483649", to_string(lim));
 }
 
-/*namespace
+namespace
 {
     template <typename T>
     void test_converting_ctor(T value) {
@@ -505,14 +505,14 @@ TEST(correctness, converting_ctor) {
 
     test_converting_ctor(numeric_limits<long>::min());
     test_converting_ctor(numeric_limits<long>::max());
-    test_converting_ctor(numeric_limits<unsigned long>::min());
-    test_converting_ctor(numeric_limits<unsigned long>::max());
+    //test_converting_ctor(numeric_limits<unsigned long>::min());
+    //test_converting_ctor(numeric_limits<unsigned long>::max());
 
     test_converting_ctor(numeric_limits<long long>::min());
     test_converting_ctor(numeric_limits<long long>::max());
-    test_converting_ctor(numeric_limits<unsigned long long>::min());
-    test_converting_ctor(numeric_limits<unsigned long long>::max());
-}*/
+    //test_converting_ctor(numeric_limits<unsigned long long>::min());
+    //test_converting_ctor(numeric_limits<unsigned long long>::max());
+}
 
 TEST(correctness, converting_ctor2) {
     big_integer a(1);
