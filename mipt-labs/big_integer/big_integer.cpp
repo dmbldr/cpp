@@ -19,34 +19,32 @@ big_integer::big_integer(int64_t value)
     }
 }
 
-// string = "12345'678901234"
-// nums = { 678901234, 12345 }
-
-big_integer::big_integer(const std::string_view& str)
+big_integer::big_integer(std::string str)
 {
     using namespace std::string_literals;
 
-    if (str.empty() || str == "0"s)
+    if (str.empty()) throw std::invalid_argument("empty string");
+
+    if (str == "0"s)
         return;
 
     m_sign = 1;
-    long long str_start = 0;
     if (str[0] == '-')
     {
         m_sign = -1;
-        str_start = 1;
+        str = str.substr(1);
     }
 
     m_nums.reserve(str.size() / DIGITS + 1);
-    for (auto i = static_cast<long long>(str.size()) - 1; i >= str_start; i -= DIGITS)
+    for (auto i = static_cast<long long>(str.size()); i > 0; i -= DIGITS)
     {
-        if (i - str_start < DIGITS)
+        if (i < DIGITS)
         {
-            m_nums.push_back(std::atoi(str.substr(str_start, i).data()));
+            m_nums.push_back(std::stoul(str.substr(0, i)));
         }
         else
         {
-            m_nums.push_back(std::atoi(str.substr(i - DIGITS, DIGITS).data()));
+            m_nums.push_back(std::stoul(str.substr(i - DIGITS, DIGITS)));
         }
     }
 

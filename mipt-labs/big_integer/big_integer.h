@@ -10,7 +10,7 @@ class big_integer
 public:
 	big_integer() = default;
 	big_integer(int64_t);
-    explicit big_integer(const std::string_view&);
+    explicit big_integer(std::string);
 
 	big_integer& operator += (const big_integer& rhs);
 	big_integer& operator -= (const big_integer& rhs);
