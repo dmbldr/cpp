@@ -21,8 +21,8 @@ public:
 	big_integer& operator-- ();
 	big_integer& operator++ ();
 
-	big_integer operator-- (int) &;
-	big_integer operator++ (int) &;
+	big_integer operator-- (int);
+	big_integer operator++ (int);
 
     big_integer operator+() const;
 	big_integer operator-() const;
@@ -45,11 +45,23 @@ private:
     /// -1: BigInt <  0;
 	int m_sign = 0;
 
-    ///
-	std::vector<uint64_t> m_nums;
-private:
+    /// Основание СС = 2^32
+    static constexpr uint32_t LIMB_BITS = 32;
+    using limb_t = uint32_t;
+    using limbs_t = std::vector<limb_t>;
 
+    limbs_t m_nums;
+
+private:
     std::size_t normalize();
+    void expand(std::size_t);
+
+    bool abs_less(const big_integer& rhs) const;
+private:
+    static limb_t get_carry(limb_t sum, limb_t a, limb_t b);
+    static limb_t get_borrow(limb_t sub, limb_t a, limb_t b);
+    static void unsign_inplace_add(limbs_t& lhs, const limbs_t& rhs);
+    static void unsign_inplace_sub(limbs_t& lhs, const limbs_t& rhs);
 };
 
 

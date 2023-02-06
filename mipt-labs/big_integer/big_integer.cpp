@@ -1,5 +1,6 @@
 ﻿#include "big_integer.h"
 
+#include <cassert>
 #include <iomanip>
 #include <sstream>
 
@@ -51,39 +52,72 @@ big_integer::big_integer(std::string str)
     normalize();
 }
 
+// +this +rhs = this + rhs
+// -this -rhs = -(this + rhs)
+
+// +this -rhs
+//	  this > rhs => this - rhs
+//	  this < rhs => -(rhs - this)
+//
+// -this +rhs
+//	  this > rhs => -(this - rhs)
+//	  this < rhs => rhs - this
 big_integer& big_integer::operator += (const big_integer& rhs)
 {
-	// +this +rhs = this + rhs
-	// -this -rhs = -(this + rhs)
+    if (rhs.m_sign == 0) return *this;
 
-	// +this -rhs 
-	//	  this > rhs => this - rhs
-	//	  this < rhs => -(rhs - this)
-	// 
-	// -this +rhs
-	//	  this > rhs => -(this - rhs)
-	//	  this < rhs => rhs - this
+    if (m_sign == rhs.m_sign)
+    {
+        unsign_inplace_add(m_nums, rhs.m_nums);
+    }
+    else if (rhs.abs_less(*this))
+    {
+        unsign_inplace_sub(m_nums, rhs.m_nums);
+    }
+    else
+    {
+        // TODO: Избавиться от копирования
+        big_integer copy = *this;
+        *this = rhs;
+        unsign_inplace_sub(m_nums, copy.m_nums);
+    }
 
+    normalize();
 	return *this;
 }
 
-// unsign_inplace_add
-// unsign_inplace_div
-
+// +this -rhs => this + rhs
+// -this +rhs => -(this + rhs)
+//
+// +this +rhs
+//	  this > rhs => this - rhs
+//	  this < rhs => -(rhs - this)
+//
+// -this -rhs
+//	  this > rhs => -(this - rhs)
+//	  this < rhs => rhs - this
+//
 big_integer& big_integer::operator -= (const big_integer& rhs)
 {
-	// +this -rhs => this + rhs
-	// -this +rhs => -(this + rhs) 
-	// 
-	// +this +rhs
-	//	  this > rhs => this - rhs
-	//	  this < rhs => -(rhs - this)
-	// 
-	// -this -rhs
-	//	  this > rhs => -(this - rhs)
-	//	  this < rhs => rhs - this
-	//
+    if (rhs.m_sign == 0) return *this;
 
+    if (m_sign != rhs.m_sign)
+    {
+        unsign_inplace_add(m_nums, rhs.m_nums);
+    }
+    else if (rhs.abs_less(*this))
+    {
+        unsign_inplace_sub(m_nums, rhs.m_nums);
+    }
+    else
+    {
+        // TODO: Избавиться от копирования
+        big_integer copy = *this;
+        *this = rhs;
+        unsign_inplace_sub(m_nums, copy.m_nums);
+    }
+
+    normalize();
 	return *this;
 }
 
@@ -106,19 +140,20 @@ big_integer& big_integer::operator-- ()
 {
 	return *this -= 1;
 }
+
 big_integer& big_integer::operator++ ()
 {
 	return *this += 1;
 }
 
-big_integer big_integer::operator-- (int) &
+big_integer big_integer::operator-- (int)
 {
 	big_integer copy(*this);
 	*this -= 1;
 	return copy;
 }
 
-big_integer big_integer::operator++ (int) &
+big_integer big_integer::operator++ (int)
 {
 	big_integer copy(*this);
 	*this += 1;
@@ -152,6 +187,78 @@ std::size_t big_integer::normalize()
     }
 
     return m_nums.size();
+}
+
+void big_integer::expand(std::size_t n)
+{
+    if (m_nums.size() < n) m_nums.resize(n);
+}
+
+bool big_integer::abs_less(const big_integer& rhs) const
+{
+    if (m_nums.size() != rhs.m_nums.size())
+        return m_nums.size() < rhs.m_nums.size();
+
+    for (size_t i = 0; i < m_nums.size(); ++i)
+    {
+        if (m_nums[i] != rhs.m_nums[i])
+            return m_nums[i] < rhs.m_nums[i];
+    }
+
+    return false;
+}
+
+// ============ static private member functions ============ //
+
+big_integer::limb_t big_integer::get_carry(limb_t sum, limb_t a, limb_t b)
+{
+    return ( (a & b) | ((a | b) & ~sum) ) >> (LIMB_BITS - 1);
+}
+
+big_integer::limb_t big_integer::get_borrow(limb_t sub, limb_t a, limb_t b)
+{
+    return ( (~a & b) | ((~a | b) & sub) ) >> (LIMB_BITS - 1);
+}
+
+void big_integer::unsign_inplace_add(limbs_t& lhs, const limbs_t& rhs)
+{
+    if (lhs.size() < rhs.size()) lhs.resize(rhs.size());
+
+    limb_t carry = 0;
+    for (std::size_t i = 0; i < rhs.size(); ++i)
+    {
+        limb_t sum = lhs[i] + rhs[i] + carry;
+        carry = get_carry(sum, lhs[i], rhs[i]);
+        lhs[i] = sum;
+    }
+
+    for (std::size_t i = rhs.size(); carry > 0 && i < lhs.size(); ++i)
+    {
+        limb_t sum = lhs[i] + carry;
+        carry = get_carry(sum, lhs[i], carry);
+        lhs[i] = sum;
+    }
+
+    if (carry > 0) lhs.push_back(carry);
+}
+
+/// lhs >= rhs
+void big_integer::unsign_inplace_sub(limbs_t& lhs, const limbs_t& rhs)
+{
+    limb_t borrow = 0;
+    for (std::size_t i = 0; i < rhs.size(); ++i)
+    {
+        limb_t sub = lhs[i] - rhs[i] - borrow;
+        borrow = get_borrow(sub, lhs[i], rhs[i]);
+        lhs[i] = sub;
+    }
+
+    for (std::size_t i = rhs.size(); borrow > 0 && i < lhs.size(); ++i)
+    {
+        limb_t sub = lhs[i] - borrow;
+        borrow = get_borrow(sub, lhs[i], borrow);
+        lhs[i] = sub;
+    }
 }
 
 // ============ not member functions ============ //
@@ -196,16 +303,7 @@ bool operator < (const big_integer& lhs, const big_integer& rhs)
 	if (lhs.m_sign != rhs.m_sign)
 		return lhs.m_sign < rhs.m_sign;
 
-	if (lhs.m_nums.size() != rhs.m_nums.size())
-		return lhs.m_nums.size() < rhs.m_nums.size();
-
-	for (size_t i = 0; i < lhs.m_nums.size(); ++i)
-	{
-		if (lhs.m_nums[i] != rhs.m_nums[i])
-			return lhs.m_nums[i] < rhs.m_nums[i];
-	}
-
-	return false;
+    return lhs.abs_less(rhs);
 }
 
 bool operator > (const big_integer& lhs, const big_integer& rhs)
