@@ -48,6 +48,7 @@ private:
     /// Основание СС = 2^32
     static constexpr uint32_t LIMB_BITS = 32;
     using limb_t = uint32_t;
+    using dlimb_t = uint64_t;
     using limbs_t = std::vector<limb_t>;
 
     limbs_t m_nums;
@@ -57,11 +58,17 @@ private:
     void expand(std::size_t);
 
     bool abs_less(const big_integer& rhs) const;
+
+    /// Умножение в столбик
+    big_integer& easy_mul(const big_integer& rhs);
 private:
     static limb_t get_carry(limb_t sum, limb_t a, limb_t b);
     static limb_t get_borrow(limb_t sub, limb_t a, limb_t b);
     static void unsign_inplace_add(limbs_t& lhs, const limbs_t& rhs);
     static void unsign_inplace_sub(limbs_t& lhs, const limbs_t& rhs);
+
+    static void mul_by_limb(limbs_t& res, const limbs_t& lhs, limb_t rhs, std::size_t shift);
+    static void mul_by_big(limbs_t& lhs, const limbs_t& rhs);
 };
 
 

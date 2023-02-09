@@ -82,7 +82,7 @@ big_integer& big_integer::operator += (const big_integer& rhs)
         unsign_inplace_sub(m_nums, copy.m_nums);
     }
 
-    normalize();
+    if (normalize() == 0) m_sign = 0;
 	return *this;
 }
 
@@ -117,21 +117,21 @@ big_integer& big_integer::operator -= (const big_integer& rhs)
         unsign_inplace_sub(m_nums, copy.m_nums);
     }
 
-    normalize();
+    if (normalize() == 0) m_sign = 0;
 	return *this;
 }
 
-big_integer &big_integer::operator*=(const big_integer &rhs)
+big_integer& big_integer::operator*=(const big_integer &rhs)
+{
+    return easy_mul(rhs);
+}
+
+big_integer& big_integer::operator/=(const big_integer &rhs)
 {
     return *this;
 }
 
-big_integer &big_integer::operator/=(const big_integer &rhs)
-{
-    return *this;
-}
-
-big_integer &big_integer::operator%=(const big_integer &rhs)
+big_integer& big_integer::operator%=(const big_integer &rhs)
 {
     return *this;
 }
@@ -208,6 +208,25 @@ bool big_integer::abs_less(const big_integer& rhs) const
     return false;
 }
 
+big_integer& big_integer::easy_mul(const big_integer& rhs)
+{
+    if (m_sign == 0) return *this;
+
+    if (rhs == 0)
+    {
+        *this = big_integer();
+        return *this;
+    }
+
+    mul_by_big(m_nums, rhs.m_nums);
+
+    if (m_sign == rhs.m_sign) m_sign = 1;
+    else m_sign = -1;
+
+    normalize();
+    return *this;
+}
+
 // ============ static private member functions ============ //
 
 big_integer::limb_t big_integer::get_carry(limb_t sum, limb_t a, limb_t b)
@@ -258,6 +277,31 @@ void big_integer::unsign_inplace_sub(limbs_t& lhs, const limbs_t& rhs)
         limb_t sub = lhs[i] - borrow;
         borrow = get_borrow(sub, lhs[i], borrow);
         lhs[i] = sub;
+    }
+}
+
+void big_integer::mul_by_limb(limbs_t& res, const limbs_t& lhs, limb_t rhs, std::size_t shift)
+{
+    if (rhs == 0) return;
+
+    dlimb_t carry = 0;
+    for (std::size_t i = 0; i < lhs.size(); ++i)
+    {
+        carry += static_cast<dlimb_t>(lhs[i]) * rhs;
+        res[i + shift] = static_cast<limb_t>(carry);
+        carry >>= LIMB_BITS;
+    }
+
+    res[lhs.size() + shift] = carry;
+}
+
+void big_integer::mul_by_big(limbs_t& res, const limbs_t& rhs)
+{
+    auto lhs = res;
+    res.resize(lhs.size() + rhs.size() + 1);
+    for (size_t i = 0; i < rhs.size(); ++i)
+    {
+        mul_by_limb(res, lhs, rhs[i], i);
     }
 }
 
